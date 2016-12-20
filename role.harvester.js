@@ -7,65 +7,61 @@ var roleHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        
-        if(creep.memory.harvesting ) {
-            if(creep.harvest(Game.getObjectById(creep.memory.targetId)) != OK){
+        if(!creep.fatigue){
+            let Target = Game.getObjectById(creep.memory.targetId);
+            
+            if(creep.hits != creep.hitsMax || creep.ticksToLive <10 ){
+                let Src = _.filter(Memory.Rooms[creep.room.name].S, (s) => s.id === creep.memory.targetId)
                 
+                if(Src){
+                    
+                    if(Memory.Rooms[creep.room.name].S[Src[0]['Index']].Places + _.filter(creep.body, (b) => (b.type === WORK)).length 
+                        > Memory.Rooms[creep.room.name].S[Src[0]['Index']].InitialPlaces){
+                            
+                        Memory.Rooms[creep.room.name].S[Src[0]['Index']].Places =  Memory.Rooms[creep.room.name].S[Src[0]['Index']].InitialPlaces
+                    }
+                    else{
+                         Memory.Rooms[creep.room.name].S[Src[0]['Index']].Places += _.filter(creep.body, (b) => (b.type === WORK)).length
+                    }
+                }
+                
+                
+               
+                return -50 ;
+                
+            }
+            if(creep.memory.targetId === "") {
+                getSourceId.run(creep);
+                creep.say('Harvesting !');
+            }
+            else {
+                
+                let Cargo = Game.getObjectById(creep.memory.cargo);
+                
+                if(!Cargo || !(Cargo.memory.harvesterId === creep.id) ){
+                    creep.memory.cargo = ""
+                }
+            }
+            let result = creep.harvest(Target)
+            
+            if(result !=OK){
+            
                 var Path = pathFind.run(creep);
                 
-                if(Path[0] != undefined){
+                
+                if(Path[0]){
                     creep.move(Path[0].direction);
                     
                 }
                 else{
-                    
                     getSourceId.run(creep);
-                }
-            }
-        }
-        else {
-            if(Memory.waitNewCreep <=0){
-                creep.build(creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES))
-            }
-            var targets = Game.spawns["First"].room.find(FIND_STRUCTURES, {
-                filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
-                        structure.energy < structure.energyCapacity;
-                }
-            });
-            if(targets.length){
-                creep.memory.targetId = targets[0].id
-            
-                
-                
-                if(creep.transfer(Game.getObjectById(creep.memory.targetId), RESOURCE_ENERGY) != OK){
-                    var Path = pathFind.run(creep);
-                
-                    if(Path[0] != undefined){
-                        creep.move(Path[0].direction);
-                    }
+                    
                 }
             }
             
-                
             
-            
-            
-        };
-        if(creep.memory.harvesting && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.harvesting = false;
-            creep.memory.moving = true;
-            creep.memory.targetId = "";
-            creep.memory.destRoom ="";
-            creep.say('emptyCargo');
         }
-        if(!creep.memory.harvesting && creep.carry.energy == 0 ) {
-            creep.memory.moving = true;
-            creep.memory.harvesting = true;
-            creep.memory.targetId="";
-            creep.memory.destRoom = "";
-            creep.say('harvesting');
-        }
+        
     }
 };
 

@@ -1,3 +1,5 @@
+var fctInit = require('fct.init');
+
 var roleMaper = {
 
     /** @param {Creep} creep **/
@@ -11,13 +13,21 @@ var roleMaper = {
                 Memory.whiteList[creep.room.name]="WtMaper";
                 creep.memory.role="";
                 creep.memory.maping=false;
+                creep.suicide()
+                fctInit.run()
             }
             else{
                 
                 route = Game.map.findRoute(creep.room.name,creep.memory.destRoom,{
                     routeCallback(roomName){
-                        if(roomName == 'E43S78') {	// avoid this room			
-    			            return Infinity;
+                        if( roomName === creep.memory.destRoom) {	// allow this room			
+    			            return 1;
+    		            }
+    		            else if(Memory.whiteList[roomName] === "Closed"){
+    		                return Infinity;
+    		            }
+    		            else if(roomName === "S76E39"){
+    		                return Infinity;
     		            }
     	            	return 1;
                     }
@@ -28,8 +38,11 @@ var roleMaper = {
         else{
             route = Game.map.findRoute(creep.room.name,Game.spawns["First"].room.name,{
                 routeCallback(roomName){
-                    if(roomName == 'E43S78') {	// avoid this room			
+                    if(Memory.whiteList[roomName]=="Closed") {	// avoid this room			
 			            return Infinity;
+		            }
+		            else if(roomName === "S76E39"){
+		                return Infinity;
 		            }
 	            	return 1;
                 }
@@ -52,7 +65,20 @@ var roleMaper = {
             };
         }
         else{
-            creep.moveTo(Math.floor(Math.random()*50),Math.floor(Math.random() * 50))
+            if(!Game.flags[creep.room.name]){
+                
+                delete Memory.Rooms[creep.room.name]
+                creep.suicide();
+                fctInit.run();
+            }
+            else{
+                creep.moveTo(Game.flags[creep.room.name].pos)
+                if(creep.pos === Game.flags[creep.room.name].pos && Game.flags[creep.room.name].color === COLOR_RED ){
+                    Game.flags[creep.room.name].setColor(COLOR_ORANGE)
+                    
+                }
+            }
+            
         }
         
         

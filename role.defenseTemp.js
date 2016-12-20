@@ -28,7 +28,7 @@ var roleDefensetemp = {
         else{
             route = Game.map.findRoute(creep.room.name,Game.spawns["First"].room.name,{
                 routeCallback(roomName){
-                    if(roomName == 'E43S78') {	// avoid this room			
+                    if(Memory.whiteList[roomName] == 'Closed') {	// avoid this room			
 			            return Infinity;
 		            }
 	            	return 1;

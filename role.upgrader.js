@@ -11,7 +11,7 @@ var roleUpgrader = {
             creep.say('upgrading');
         }
 
-        if(!creep.memory.upgrading && Memory.waitNewCreep <= 1 ) {
+        if(!creep.memory.upgrading ) {
             
             
             var targets = creep.room.find(FIND_STRUCTURES, {
@@ -21,10 +21,19 @@ var roleUpgrader = {
                     }
             });
             for(var target in targets) {
-                if(creep.withdraw(targets[target],RESOURCE_ENERGY)  == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[target]);
-                };
-                break;
+                let WithDraw = creep.withdraw(targets[target],RESOURCE_ENERGY)
+                    if( WithDraw == ERR_NOT_IN_RANGE) {
+                        if(creep.moveTo(targets[target]) !=  OK){
+                            
+                            let Next = PathFinder.search(creep.pos,{pos: targets[target].pos, range: 1}).path[0]
+                           
+                            creep.move(creep.pos.getDirectionTo(Next))
+                            
+                        };
+                    }
+                    else if(WithDraw === OK){
+                        break;
+                    };
             };
         }
         else {

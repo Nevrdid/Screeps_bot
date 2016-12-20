@@ -1,7 +1,7 @@
 
 var getConstrId = require('get.constrId'); 
 
-var roleBuilderTemp = {
+var roleBuilder = {
     
 
     /** @param {Creep} creep **/
@@ -115,4 +115,4 @@ var roleBuilderTemp = {
     }
 };
 
-module.exports = roleBuilderTemp;
+module.exports = roleBuilder;

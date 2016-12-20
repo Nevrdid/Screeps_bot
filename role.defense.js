@@ -18,28 +18,40 @@ var roleDefense = {
                 if(creep.room.name == creep.memory.destRoom  && !creep.memory.pause){
                     var Ennemy = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
                     var Structur = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);
-                    if(!Ennemy && !Structur ){
-                        creep.moveTo(Math.floor(50*Math.random()),Math.floor(50*Math.random()));
-                    }
-                    else if(Ennemy){
+                    var Target = creep.pos.findClosestByRange([Ennemy,Structur]);
+                    if(!creep.room.my){
+                        var Wall = creep.room.find(FIND_STRUCTURES)
+                        let Walls = _.filter(Wall, (structure) => structure.structureType === STRUCTURE_WALL);
+                        let W =creep.pos.findClosestByRange(Walls );
+                        let M = _.min(Walls, (wall) => wall.hits )
                         
-                        if(creep.attack(Ennemy) == ERR_NOT_IN_RANGE && !creep.memory.pause){
-                            creep.moveTo(Ennemy.pos);
+                        Target = creep.pos.findClosestByRange([Target,M,W]);
+                    }
+                    
+                    if(!Ennemy && !Structur && !Wall /**&& Controller.owner == undefined**/ ){
+                        creep.moveTo(Game.flags[creep.room.name].pos);
+                    }
+                    else if (Target && Target.owner.username != 'Spedwards'){
+                        
+                        if(creep.attack(Target) == ERR_NOT_IN_RANGE && !creep.memory.pause){
+                            creep.moveTo(Target.pos);
                         };
                     }
-                    else if(Structur){
-                        if(creep.attack(Structur) == ERR_NOT_IN_RANGE){
-                            creep.moveTo(Structur.pos);
-                        };
                         
-                    }
+                    /**
+                    else if (Controller){
+                        if(creep.attack(Controller)== ERR_NOT_IN_RANGE && !creep.memory.pause){
+                            creep.moveTo(Controller.pos);
+                        };
+                    }**/
+                    
                     
                 }
                 else{
                     
                     route = Game.map.findRoute(creep.room,creep.memory.destRoom,{
                         routeCallback(roomName){
-                            if(roomName == 'E79S43') {	// avoid this room			
+                            if(Memory.whiteList[roomName] == 'Closed') {	// avoid this room			
         			            return Infinity;
         		            }
         	            	return 1;
@@ -52,7 +64,7 @@ var roleDefense = {
             else{
                 route = Game.map.findRoute(creep.room,Game.spawns["First"].room.name,{
                     routeCallback(roomName){
-                        if(roomName == 'E79S43') {	// avoid this room			
+                        if(Memory.whiteList[roomName] == 'Closed') {	// avoid this room			
     			            return Infinity;
     		            }
     	            	return 1;

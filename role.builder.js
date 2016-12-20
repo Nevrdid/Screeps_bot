@@ -11,23 +11,23 @@ var roleBuilder = {
             let O = Game.getObjectById(tar)
             if(O != undefined){
                 
-                if( O.hits == O.hitsMax && O.progress == 0){
+                if( O.hits === O.hitsMax && O.hits ){
                     getConstrId.run(creep);
                 }
-                
                 if(creep.build(O) != OK){
                     if(creep.upgradeController(O) != OK){
                         if(creep.repair(O) != OK ){
-                        
-                            var Path = pathFind.run(creep);
-                                
-                            if(Path[0] == undefined){
-                                
-                                getConstrId.run(creep);
-                                
-                            }
-                            else{
-                                creep.move(Path[0].direction);
+                            if(!creep.fatigue){
+                                var Path =pathFind.run(creep);
+                                    
+                                if(Path[0] == undefined){
+                                    
+                                    getConstrId.run(creep);
+                                    
+                                }
+                                else{
+                                    creep.move(Path[0].direction);
+                                }
                             }
                         
                         }
@@ -68,15 +68,18 @@ var roleBuilder = {
                         }
                 });
                 for(var target in targets){
-                    if(creep.withdraw(targets[target],RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    let WithDraw = creep.withdraw(targets[target],RESOURCE_ENERGY)
+                    if( WithDraw == ERR_NOT_IN_RANGE) {
                         if(creep.moveTo(targets[target]) !=  OK){
-                            PathFinder.use(true);
-                                let Next = PathFinder.search(creep.pos,{pos: targets[target].pos, range: 1}).path[0]
-                            PathFinder.use(false);
+                            
+                            let Next = PathFinder.search(creep.pos,{pos: targets[target].pos, range: 1}).path[0]
+                            
                             
                             creep.move(creep.pos.getDirectionTo(Next))
                             
                         };
+                    }
+                    else if(WithDraw === OK){
                         break;
                     };
                 };

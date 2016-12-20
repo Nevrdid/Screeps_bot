@@ -1,69 +1,49 @@
 var getConstrId = {
     run:function(creep){
-        let Roo = creep.memory.destRoom 
-        if(Roo != "" && Memory.whiteList[Roo]=="Ready"){
+        
             
-                let constrsIn = Game.rooms[Roo].find(FIND_CONSTRUCTION_SITES);
-                let structsIn = Game.rooms[Roo].find(FIND_STRUCTURES, { 
-                    filter: object => object.hits < 0.5 * object.hitsMax });
                 
-                constrsIn = constrsIn.concat( structsIn.concat( [creep.room.controller] ) )
-                /**
-                console.log(constrsIn[0].room.name)**/
+        var WL= Memory.whiteList;
+        
+        let min = [100,""]
+        
+        
+        for(var R in WL){
+           if(WL[R]=="Ready" & Game.rooms[R] != undefined){
                 
+                let constrsIn = Game.rooms[R].find(FIND_CONSTRUCTION_SITES);
+                let structsIn = Game.rooms[R].find(FIND_STRUCTURES, { filter: 
+                object => object.hits < 20000 && object.hits <= 0.75 * object.hitsMax });
                 
-                let constr = creep.pos.findClosestByRange(constrsIn)
-                if(constr != undefined){
-                        
-                    creep.memory.targetId = constr.id;
-                    creep.say("Dest : " + constr.room.name);
+                var Targets = constrsIn.concat(structsIn)
                 
+                if(creep.room.my && creep.room.controller){
+                    Targets = Targets.push(creep.room.controller)
                 }
-                    
-            
-            
-        }
-        else{
-            
                 
-            var WL= Memory.whiteList;
-            
-            for(var R in WL){
-               if(WL[R]=="Ready" & Game.rooms[R] != undefined){
+                
+                let builders = _.filter(Game.creeps, (creep) => creep.memory.role == "builder");
+                let buildersIn = _.filter(builders, (creep) => creep.memory.destRoom == R).length;
                     
-                    let constrsIn = Game.rooms[R].find(FIND_CONSTRUCTION_SITES);
-                    let structsIn = Game.rooms[R].find(FIND_STRUCTURES, { filter: 
-                    object => object.hits < 0.5 * object.hitsMax });
-
-                   
-                    constrsIn = constrsIn.concat(structsIn).push(creep.room.controller)
-                    
-                    let builders = _.filter(Game.creeps, (creep) => creep.memory.role == "builder");
-                    let buildersIn = _.filter(builders, (creep) => creep.memory.destRoom == R).length;
-                    let min = [100,""]
-                    if(buildersIn <= Memory.creepsLimits[R][2]){
-                        
-                        for(var constr in constrsIn){
-                            
-                            let buildersOn = _.filter(Game.creeps, (creep) => creep.memory.targetId == constrsIn[constr].id).length;
-                            if(buildersOn < min[0]){
-                                min[0]=buildersOn;
-                                min[1]=constrsIn[constr].id;
-                            }
-                        }
+                for(var constr in Targets){
                     
                     
-                        creep.memory.targetId = min[1];
+                    let buildersOn = _.filter(Game.creeps, (creep) => creep.memory.targetId == Targets[constr].id).length;
+                    
+                    if(buildersOn == 0){
+                        creep.memory.targetId = Targets[constr].id;
                         creep.memory.destRoom = R;
                         creep.say("Dest : " + R);
-                        
-                        break;
+                        return 1;
+                    }else if(buildersOn < min[0]){
+                        min[0]=buildersOn;
+                        min[1]=Targets[constr].id;
                     }
-                    
-                   
                 }
-            };
-        }
+            }
+        };
+        
+        
     }
 };
 

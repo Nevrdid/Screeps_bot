@@ -63,18 +63,18 @@ var pathFind = {
                 }
                 R++
             }
-            return ret;
+            return Room.serializePath(ret);
             
         }
         else{
             ret = creep.room.findPath(creep.pos, goal, {ignoreCreeps: true});
             if(ret[0] != undefined){
-                return ret;
+                return Room.serializePath(ret);
             }
         }
         
        
-        return "";
+        return ;
     }
  };
  

@@ -4,14 +4,16 @@ var roleBuilder = require('role.builder');
 var roleMaper = require('role.maper');
 var roleDefense = require('role.defense');
 var roleMeca = require('role.meca');
-var roleHarvestnbuild = require('role.harvestnbuild');
+var roleCargo = require('role.cargo');
 var fctInit = require('fct.init');
 var checkWl = require('check.wl');
+var checkInfos = require('check.infos')
 var checkCreepSpawn = require('check.creepSpawn');
+var registerSources = require('register.sources');
+var reloadRooms = require('reload.rooms')
 
-fctInit.run();
-checkWl.run();
-checkCreepSpawn.run();
+reloadRooms.run(0);
+
 
 
 
@@ -20,15 +22,20 @@ module.exports.loop = function () {
     var WL= Memory.whiteList;
     
     var Num = 0;
-    for ( let R in WL ){  Num++  }
+    for(var R in Memory.Rooms){
+        Num++
+    }
     
     var L = 0;
     for(let creep in Game.creeps){L++;}
     
-    Memory.waitNewCreep = CL[0]+CL[1]+CL[2] + CL[3] + CL[4] + CL[5] +Num - L;
+    Memory.waitNewCreep = CL[0]+CL[1]+CL[2] + CL[3] + CL[4] + CL[5] +Num - 1 - L;
     
-    if(!Game.time%10){
+    if(Game.time%10 === 0){
+        
         checkWl.run();
+        checkInfos.run();
+        
     }
     
     for(var name in Memory.creeps) {
@@ -38,27 +45,30 @@ module.exports.loop = function () {
             
             console.log('Clearing non-existing creep memory:', name, ". Waiting for: ", Memory.waitNewCreep, " creeps.");
             
-            
         }
     }
     
-    if(!Game.spawns.First.spawning && Memory.waitNewCreep > 0){
+    if( !Game.spawns.First.spawning /**&& Memory.waitNewCreep > 0**/){
         let newName = checkCreepSpawn.run();
-        if(newName != -1){
+        if(!(newName <0)){
             let CreepBody = Game.creeps[newName].body;
             let CreepBodyString = "";
             for(var B in CreepBody){
                 CreepBodyString += ' ' + CreepBody[B].type;
             }
-            console.log("Spawn new creep : ", newName,'. Body :', CreepBodyString," . Waiting for: ", Memory.waitNewCreep-1 , " creeps.");
+            console.log("------- Spawn new creep : ", newName,'. Body :', CreepBodyString," . Waiting for: ", Memory.waitNewCreep-1 , " creeps.");
             
         }
     }
+    
     for(let Name in Game.creeps) {
         let creep = Game.creeps[Name];
         var roleInMap = _.filter(Game.creeps, (C) => (C.memory.role == creep.memory.role && C.memory.destRoom == creep.memory.destRoom)).length;
         if(creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
+            if(roleHarvester.run(creep) === -50){
+                fctInit.run();
+                creep.suicide();
+            }
         }
         else if( creep.memory.role == 'upgrader') {
             roleUpgrader.run(creep);
@@ -70,9 +80,9 @@ module.exports.loop = function () {
             roleMaper.run(creep);
         }
         else if( creep.memory.role == 'defenser') {
-            if(roleInMap > Memory.creepsLimits[creep.memory.destRoom][3]){
+            if(roleInMap > Memory.Rooms[creep.memory.destRoom]['CL'][3]){
                 for(let R in WL){
-                    if( _.filter(Game.creeps, (C) => (C.memory.role == creep.memory.role && C.memory.destRoom == R)).length < Memory.creepsLimits[R][3] ){
+                    if( _.filter(Game.creeps, (C) => (C.memory.role == creep.memory.role && C.memory.destRoom == R)).length < Memory.Rooms[R]['CL'][3] ){
                         creep.memory.destRoom = R;
                     }
                 }
@@ -82,8 +92,10 @@ module.exports.loop = function () {
         else if( creep.memory.role == 'meca') {
             roleMeca.run(creep);
         }
-        else if(creep.memory.role == 'harvestnbuild') {
-            roleHarvestnbuild.run(creep);
+        else if(creep.memory.role == 'cargo') {
+            if(roleCargo.run(creep) === -50){
+                creep.suicide();
+            }
         }
     }
 }
